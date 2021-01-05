@@ -1,0 +1,7 @@
+: essai 0 = if 1 else 9 then ;
+: incr 1 + ;
+: 2+. incr incr . ;
+
+7 8 + 2+.
+0 essai .
+19 essai .

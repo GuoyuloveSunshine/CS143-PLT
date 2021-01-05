@@ -1,0 +1,13 @@
+defer u \ Déclaration de u
+
+: 0= 0 = ;
+: 1- 1 - ;
+: v ( n -- v[n])
+dup 0= if drop 1 else dup 1- u 2 * swap 1- recurse - then ;
+
+: [u] ( n -- u[n])
+dup 0= if drop 1 else dup 1- u swap 1- v + then ;
+
+' [u] is u \ Résolution de la déclaration
+
+4 u .

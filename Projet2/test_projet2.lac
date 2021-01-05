@@ -1,0 +1,4 @@
+" -(1-2)+(3-4)*(-5)" calculate . 
+" 1+2+3-2*8/4-9" calculate . 
+" -(-0008)" calculate .
+" 2+3-" calculate .
