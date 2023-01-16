@@ -31,8 +31,6 @@ llexeme resultat;	// Le résultat de l'analyse lexicale
 // Déclaration pour pouvoir faire la récursivité croisée
 int somme(int d, int f);	// Utilisée par <facteur>
 
-void add_divers(enum lexeme_tsyn type, char * s, int i, int * ref_j, lexeme * ref_lu);
-
 // Définitions des fonctions de la BNF
 int entier(int d)
 {	
@@ -57,33 +55,6 @@ int somme(int d, int f)
     return(b);
 };
 
-void add_nombre(char * s, int i, int j, lexeme * ref_lu)
-{
-    /* Input： j,s,i */
-    /* Output: lu, resultat */
-    if (j != 0)
-    {
-        ref_lu->type = NOMBRE;
-        strncpy(ref_lu->valeur, s+i-j, j);
-        ref_lu->valeur[j] = 0;
-        resultat.tab[resultat.N] = *ref_lu;
-        resultat.N += 1;
-    }
-}
-
-void add_divers(enum lexeme_tsyn type, char * s, int i, int * ref_j, lexeme * ref_lu)
-{
-    /* Input： s,i */
-    /* Output: j, lu, resultat */
-    add_nombre(s, i, *ref_j, ref_lu);
-    *ref_j = 0;
-    ref_lu->type = type;
-    strncpy(ref_lu->valeur, s+i, 1);
-    ref_lu->valeur[1] = 0;
-    resultat.tab[resultat.N] = * ref_lu;
-    resultat.N += 1;
-};
-
 int synta(char *s){
     // Analyse lexicale en utilisant l'automate le plus simple. Il faudrait changer le switch pour le deuxième automate
 	int i = 0, j = 0;	// i est l'indice de parcours de s, j est le nombre de chiffres lus
@@ -91,9 +62,29 @@ int synta(char *s){
     lexeme lu;	// Facile à comprendre, c'est le lexème lu !
 
 	// On a trouvé un lexème de type NOMBRE
-
+	void add_nombre(void)
+	{
+        if (j != 0)
+		{
+			lu.type = NOMBRE;
+            strncpy(lu.valeur, s+i-j, j);
+            lu.valeur[j] = 0;	
+            resultat.tab[resultat.N] = lu;
+            resultat.N += 1;
+		};
+	};
 
 	// On a un autre lexème
+	void add_divers(int type)
+	{
+		add_nombre();
+		j = 0;
+		lu.type = type;
+		strncpy(lu.valeur, s+i, 1);
+        lu.valeur[1] = 0;
+		resultat.tab[resultat.N] = lu;
+        resultat.N += 1;
+	};
 		
 	do 	// L'analyseur lexical proprement dit
 		switch(s[i])
@@ -109,31 +100,30 @@ int synta(char *s){
                         if (s[i+1]=='\0') break;
                     }
                     if(begin==i){
-                        add_divers(OP, s, i, &j, & lu);
+                        add_divers(OP);
                         break;
                     }
                     else{
                         i++;
                         j+=1;
-                        add_nombre(s, i, j, &lu);
-
+                        add_nombre();
                         i--;
                         j=0;
                         break;
                     }
                 }
                 else{
-                    add_divers(OP, s, i, &j, & lu);
+                    add_divers(OP);
                     break;
                 }
 			case '+': case '*': case '/':
-                add_divers(OP, s, i, &j, & lu);
+				add_divers(OP);
 				break;
 			case '(':
-                add_divers(Par_ou, s, i, &j, & lu);
-                break;
+				add_divers(Par_ou);
+				break;
 			case ')':
-                add_divers(Par_fe, s, i, &j, & lu);
+				add_divers(Par_fe);
 				break;
 			default: 
 				printf("Erreur !");
@@ -142,7 +132,7 @@ int synta(char *s){
 	while (s[++i] != 0);
 	
 	// La ligne peut se terminer par un nombre qui n'a pas été encore pris en compte
-    add_nombre(s, i, j, &lu);
+	add_nombre();
 
     if (resultat.N>1 && strcmp(resultat.tab[0].valeur,"-")==0){
         printf("\n\nL'expression %s est syntaxiquement %s", s, somme(1, resultat.N-1) ? "correcte\n" : "incorrecte\n");
